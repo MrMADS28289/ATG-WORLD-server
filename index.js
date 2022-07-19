@@ -41,14 +41,20 @@ const run = async () => {
             res.send(user);
         });
 
-        // update user info
+        app.get('/users/:userName', async (req, res) => {
+            const userName = req.params.userName;
+            const filter = { userName: userName };
+            const user = await userCollection.findOne(filter);
+            res.send(user);
+        });
+
         app.put('/user/:email', async (req, res) => {
             const email = req.params.email;
-            const profile = req.body;
+            const password = req.body;
             const filter = { email: email };
             const options = { upsert: true };
             const updateDoc = {
-                $set: profile,
+                $set: password,
             };
             const result = await userCollection.updateOne(filter, updateDoc, options);
             res.send(result);
@@ -63,7 +69,7 @@ run().catch(console.dir);
 
 
 app.listen(port, () => {
-    console.log('Inventory management system server is running in port', port);
+    console.log('ATG server is running in port', port);
 })
 
 app.get('/', (req, res) => {
