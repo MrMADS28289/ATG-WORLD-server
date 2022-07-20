@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const app = express();
 const port = process.env.PORT || 5000;
 
@@ -25,6 +25,8 @@ const run = async () => {
         await client.connect();
 
         const userCollection = client.db("Inventory_management_service").collection("users");
+        const postCollection = client.db("Inventory_management_service").collection("posts");
+        const commentCollection = client.db("Inventory_management_service").collection("comments");
 
         // User info save to DB
         app.post('/user', async (req, res) => {
@@ -41,6 +43,7 @@ const run = async () => {
             res.send(user);
         });
 
+        // login
         app.get('/users/:userName', async (req, res) => {
             const userName = req.params.userName;
             const filter = { userName: userName };
@@ -48,6 +51,7 @@ const run = async () => {
             res.send(user);
         });
 
+        // Reset password
         app.put('/user/:email', async (req, res) => {
             const email = req.params.email;
             const password = req.body;
@@ -59,6 +63,50 @@ const run = async () => {
             const result = await userCollection.updateOne(filter, updateDoc, options);
             res.send(result);
         });
+
+        // Create post
+        app.post('/post', async (req, res) => {
+            const post = req.body;
+            const result = await postCollection.insertOne(post);
+            res.send(result);
+        });
+
+        // Add link
+        app.put('/posts/:id', async (req, res) => {
+            const id = req.params.id;
+            const liked = req.body;
+            const filter = { _id: ObjectId(id) };
+            const options = { upsert: true };
+            const updateDoc = {
+                $set: liked,
+            };
+            const result = await postCollection.updateOne(filter, updateDoc, options);
+            res.send(result);
+        });
+
+        // Add Comment
+        app.post('/comment', async (req, res) => {
+            const comment = req.body;
+            const result = await commentCollection.insertOne(comment);
+            res.send(result);
+        });
+
+        // get posts
+        app.get('/posts', async (req, res) => {
+            const cursor = postCollection.find({});
+            const posts = await cursor.toArray();
+            res.send(posts);
+        })
+
+        // get comments
+        app.get('/comments/:id', async (req, res) => {
+            const id = req.params.id;
+            const filter = { id: id };
+            const cursor = commentCollection.find(filter);
+            const comments = await cursor.toArray();
+            res.send(comments);
+        })
+
 
     }
     finally {
