@@ -43,6 +43,13 @@ const run = async () => {
             res.send(user);
         });
 
+        // get users info from DB
+        app.get('/users', async (req, res) => {
+            const cursor = userCollection.find({});
+            const users = await cursor.toArray();
+            res.send(users);
+        });
+
         // login
         app.get('/users/:userName', async (req, res) => {
             const userName = req.params.userName;
